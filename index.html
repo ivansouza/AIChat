@@ -139,8 +139,14 @@
                     els.btnLoad.disabled = true;
                     return;
                 }
-                const info = await adapter.requestAdapterInfo();
-                els.gpuStatus.innerHTML = `<span class="text-green-400">✅ GPU Detectada:</span> ${info.vendor} ${info.architecture || ''}`;
+
+                // Correção: requestAdapterInfo() foi removido em versões recentes. Usamos adapter.info diretamente.
+                let infoText = "Compatível";
+                if (adapter.info) {
+                    infoText = `${adapter.info.vendor} ${adapter.info.architecture || ''}`;
+                }
+                
+                els.gpuStatus.innerHTML = `<span class="text-green-400">✅ GPU Detectada:</span> ${infoText}`;
             } catch (e) {
                 els.gpuStatus.innerHTML = `<span class="text-yellow-400">⚠️ Erro ao acessar GPU: ${e.message}</span>`;
             }
@@ -258,5 +264,6 @@
     </script>
 </body>
 </html>
+
 
 
