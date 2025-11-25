@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Local Mobile - V2</title>
+    <title>AI Local Mobile - V3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -24,48 +24,49 @@
         <div class="w-full max-w-md space-y-6 text-center">
             
             <div class="flex flex-col items-center">
-                <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4">
+                <div class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-4">
                     <i data-lucide="cpu" class="w-8 h-8 text-white"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-white">AI Local Mobile</h1>
-                <p class="text-green-400 text-xs mt-1 font-mono border border-green-800 bg-green-900/30 px-2 py-1 rounded">Versão 2.0 (Fix GPU)</p>
+                <p class="text-indigo-300 text-xs mt-1 font-mono border border-indigo-800 bg-indigo-900/30 px-2 py-1 rounded">Versão 3.0 (Adreno Fix)</p>
             </div>
 
-            <!-- Status WebGPU -->
             <div id="gpu-status" class="bg-gray-800 p-3 rounded-lg text-xs text-left border border-gray-700">
-                Verificando compatibilidade...
+                Verificando GPU...
             </div>
 
-            <!-- Seleção -->
+            <!-- Seleção de Modelo Atualizada -->
             <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-left">
-                <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Modelo</label>
+                <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Selecione o Modelo</label>
                 <select id="model-select" class="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-lg p-3">
-                    <!-- Modelos Leves Recomendados para Mobile -->
-                    <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 1B (Mais Rápido/Leve)</option>
-                    <option value="Llama-3.2-3B-Instruct-q4f16_1-MLC">Llama 3.2 3B (Equilibrado)</option>
+                    <!-- Opções mais estáveis para Android -->
+                    <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Qwen 2.5 1.5B (Recomendado/Estável)</option>
+                    <option value="TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC">TinyLlama 1.1B (Compatibilidade Alta)</option>
+                    <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 1B (Pode falhar em Adreno)</option>
                 </select>
+                <p class="mt-2 text-[10px] text-gray-500">Se der erro de "Shader", tente o TinyLlama.</p>
             </div>
 
             <!-- Área de Progresso -->
             <div id="progress-area" class="hidden w-full bg-gray-800 p-4 rounded-xl border border-gray-700">
-                <div class="flex justify-between text-xs font-bold text-blue-400 mb-1">
+                <div class="flex justify-between text-xs font-bold text-indigo-400 mb-1">
                     <span id="progress-phase">Iniciando...</span>
                     <span id="progress-percent">0%</span>
                 </div>
                 <div class="w-full bg-gray-900 rounded-full h-4 mb-2 overflow-hidden border border-gray-600">
-                    <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full transition-all duration-200" style="width: 0%"></div>
+                    <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-400 h-full transition-all duration-200" style="width: 0%"></div>
                 </div>
                 <div id="progress-log" class="text-[10px] text-gray-500 font-mono text-left h-12 overflow-y-auto leading-tight">
-                    Aguardando início...
+                    Aguardando...
                 </div>
             </div>
 
-            <button id="btn-load" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                <span>Baixar Modelo</span>
+            <button id="btn-load" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span>Baixar e Iniciar</span>
                 <i data-lucide="download" class="w-4 h-4"></i>
             </button>
 
-            <div id="error-msg" class="hidden p-3 text-sm text-red-200 bg-red-900/50 border border-red-800 rounded-lg text-left"></div>
+            <div id="error-msg" class="hidden p-3 text-sm text-red-200 bg-red-900/50 border border-red-800 rounded-lg text-left break-words"></div>
         </div>
     </div>
 
@@ -75,8 +76,8 @@
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-xs">AI</div>
                 <div>
-                    <h2 class="font-semibold text-white text-sm">Llama Chat</h2>
-                    <p class="text-[10px] text-green-400 flex items-center gap-1">● Online (Local)</p>
+                    <h2 class="font-semibold text-white text-sm">Chat Local</h2>
+                    <p class="text-[10px] text-green-400 flex items-center gap-1">● Online (GPU)</p>
                 </div>
             </div>
             <button onclick="window.location.reload()" class="p-2 text-gray-400 hover:text-white"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
@@ -88,8 +89,8 @@
 
         <footer class="flex-none p-2 bg-gray-800 border-t border-gray-700">
             <form id="chat-form" class="flex gap-2">
-                <input id="user-input" type="text" placeholder="Digite aqui..." class="flex-1 bg-gray-900 text-white border-0 rounded-full px-4 py-3 focus:ring-1 focus:ring-blue-500" autocomplete="off">
-                <button type="submit" id="send-btn" disabled class="bg-blue-600 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center disabled:opacity-50">
+                <input id="user-input" type="text" placeholder="Digite aqui..." class="flex-1 bg-gray-900 text-white border-0 rounded-full px-4 py-3 focus:ring-1 focus:ring-indigo-500" autocomplete="off">
+                <button type="submit" id="send-btn" disabled class="bg-indigo-600 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center disabled:opacity-50">
                     <i data-lucide="send" class="w-5 h-5"></i>
                 </button>
             </form>
@@ -120,46 +121,32 @@
 
         lucide.createIcons();
         let engine = null;
-        let messages = [{ role: "system", content: "Você é um assistente útil e responde em português." }];
+        let messages = []; 
 
-        // 1. Diagnóstico Inicial (Corrigido e Simplificado)
         async function checkSystem() {
             if (!navigator.gpu) {
-                els.gpuStatus.innerHTML = `<span class="text-red-400 font-bold">❌ WebGPU não detectado.</span><br>Use Chrome no Android ou atualize o iOS.`;
+                els.gpuStatus.innerHTML = `<span class="text-red-400 font-bold">❌ WebGPU ausente.</span>`;
                 els.btnLoad.disabled = true;
                 return;
             }
-            
             try {
                 const adapter = await navigator.gpu.requestAdapter();
                 if (!adapter) {
-                    els.gpuStatus.innerHTML = `<span class="text-red-400">❌ Adaptador GPU falhou.</span>`;
-                    els.btnLoad.disabled = true;
+                    els.gpuStatus.innerHTML = `<span class="text-red-400">❌ Erro Adaptador.</span>`;
                     return;
                 }
-
-                // CORREÇÃO CRÍTICA: Não chamamos mais requestAdapterInfo() pois ele foi removido do Chrome.
-                // Apenas verificamos se o adapter existe.
-                let infoText = "Compatível";
-                
-                // Tentativa segura de pegar o nome, se disponível como propriedade
-                if (adapter.info) {
-                    infoText = `${adapter.info.vendor || ''} ${adapter.info.architecture || ''}`;
-                }
-                
-                els.gpuStatus.innerHTML = `<span class="text-green-400">✅ GPU Detectada:</span> ${infoText}`;
+                let infoText = "GPU Compatível";
+                if (adapter.info) infoText = `${adapter.info.vendor || ''} ${adapter.info.architecture || ''}`;
+                els.gpuStatus.innerHTML = `<span class="text-green-400">✅ GPU:</span> ${infoText}`;
             } catch (e) {
-                // Se der erro aqui, é algo muito grave, mas não será 'requestAdapterInfo not a function' pois removemos a chamada
-                els.gpuStatus.innerHTML = `<span class="text-yellow-400">⚠️ Erro GPU: ${e.message}</span>`;
+                els.gpuStatus.innerHTML = `<span class="text-yellow-400">⚠️ Aviso: ${e.message}</span>`;
             }
         }
         checkSystem();
 
-        // 2. Carregamento com Feedback Visual
         els.btnLoad.addEventListener('click', async () => {
             const modelId = els.modelSelect.value;
             
-            // UI Update
             els.btnLoad.classList.add('hidden');
             els.modelSelect.disabled = true;
             els.progressArea.classList.remove('hidden');
@@ -167,7 +154,6 @@
 
             try {
                 const initProgressCallback = (report) => {
-                    console.log("Progress:", report); 
                     els.progressPhase.innerText = report.text.split('[')[0].substring(0, 25) + '...';
                     els.progressLog.innerText = report.text;
                     if (report.progress) {
@@ -177,10 +163,17 @@
                     }
                 };
 
+                // Configurações específicas para evitar travamento em Android
                 engine = await CreateMLCEngine(modelId, { 
                     initProgressCallback,
-                    logLevel: "INFO"
+                    logLevel: "INFO",
+                    appConfig: {
+                        useIndexedDBCache: true // Força cache para não baixar de novo
+                    }
                 });
+
+                // Resetar mensagens com o prompt correto para o modelo
+                messages = [{ role: "system", content: "Você é um assistente útil e responde em português do Brasil." }];
 
                 els.progressPhase.innerText = "Concluído!";
                 els.progressBar.style.width = "100%";
@@ -188,8 +181,17 @@
 
             } catch (err) {
                 console.error(err);
+                let msg = err.message;
+                
+                // Sugestão inteligente de erro
+                if (msg.includes("ShaderModule") || msg.includes("reshape")) {
+                    msg = `<strong>Erro de Driver (Adreno):</strong><br>O modelo atual não é compatível com sua GPU.<br>👉 <strong>Tente selecionar o "TinyLlama" ou "Qwen" na lista acima.</strong>`;
+                } else if (msg.includes("Fetch")) {
+                    msg = "Erro de conexão. Verifique o Wi-Fi.";
+                }
+
                 els.errorMsg.classList.remove('hidden');
-                els.errorMsg.innerHTML = `<strong>Erro Fatal:</strong> ${err.message}<br><br>Verifique sua conexão Wi-Fi.`;
+                els.errorMsg.innerHTML = msg;
                 els.btnLoad.classList.remove('hidden');
                 els.progressArea.classList.add('hidden');
                 els.modelSelect.disabled = false;
@@ -201,10 +203,9 @@
             setTimeout(() => els.setup.style.display = 'none', 500);
             els.chat.classList.remove('opacity-0', 'pointer-events-none');
             els.sendBtn.disabled = false;
-            appendMsg('assistant', 'Olá! Modelo carregado (V2). Como posso ajudar?');
+            appendMsg('assistant', 'Olá! Estou rodando localmente na sua GPU. Pode me perguntar qualquer coisa.');
         }
 
-        // 3. Lógica do Chat
         els.form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = els.input.value.trim();
@@ -222,7 +223,10 @@
 
             try {
                 const chunks = await engine.chat.completions.create({
-                    messages, stream: true, temperature: 0.7
+                    messages, 
+                    stream: true, 
+                    temperature: 0.7,
+                    max_tokens: 2048 // Limite seguro para mobile
                 });
 
                 for await (const chunk of chunks) {
@@ -233,10 +237,11 @@
                 }
                 messages.push({ role: "assistant", content: fullResponse });
             } catch (err) {
-                responseTextEl.innerText = "Erro: " + err.message;
+                responseTextEl.innerText = "Erro na geração: " + err.message;
             } finally {
                 els.sendBtn.disabled = false;
                 els.typing.classList.add('hidden');
+                els.msgs.scrollTop = els.msgs.scrollHeight;
             }
         });
 
@@ -246,7 +251,7 @@
             div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
             div.id = id;
             div.innerHTML = `
-                <div class="max-w-[85%] p-3 rounded-2xl ${role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-gray-700 text-gray-200 rounded-tl-none'} shadow-sm message-bubble">
+                <div class="max-w-[85%] p-3 rounded-2xl ${role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-gray-700 text-gray-200 rounded-tl-none'} shadow-sm message-bubble">
                     <p class="whitespace-pre-wrap text-sm">${text}</p>
                 </div>
             `;
