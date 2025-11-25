@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Local Mobile - Com Debug</title>
+    <title>AI Local Mobile - V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -28,7 +28,7 @@
                     <i data-lucide="cpu" class="w-8 h-8 text-white"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-white">AI Local Mobile</h1>
-                <p class="text-gray-400 text-xs mt-1">Versão com Diagnóstico</p>
+                <p class="text-green-400 text-xs mt-1 font-mono border border-green-800 bg-green-900/30 px-2 py-1 rounded">Versão 2.0 (Fix GPU)</p>
             </div>
 
             <!-- Status WebGPU -->
@@ -46,17 +46,15 @@
                 </select>
             </div>
 
-            <!-- Área de Progresso (Sempre visível mas vazia inicialmente) -->
+            <!-- Área de Progresso -->
             <div id="progress-area" class="hidden w-full bg-gray-800 p-4 rounded-xl border border-gray-700">
                 <div class="flex justify-between text-xs font-bold text-blue-400 mb-1">
                     <span id="progress-phase">Iniciando...</span>
                     <span id="progress-percent">0%</span>
                 </div>
-                <!-- Barra -->
                 <div class="w-full bg-gray-900 rounded-full h-4 mb-2 overflow-hidden border border-gray-600">
                     <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full transition-all duration-200" style="width: 0%"></div>
                 </div>
-                <!-- Log Detalhado -->
                 <div id="progress-log" class="text-[10px] text-gray-500 font-mono text-left h-12 overflow-y-auto leading-tight">
                     Aguardando início...
                 </div>
@@ -124,7 +122,7 @@
         let engine = null;
         let messages = [{ role: "system", content: "Você é um assistente útil e responde em português." }];
 
-        // 1. Diagnóstico Inicial
+        // 1. Diagnóstico Inicial (Corrigido e Simplificado)
         async function checkSystem() {
             if (!navigator.gpu) {
                 els.gpuStatus.innerHTML = `<span class="text-red-400 font-bold">❌ WebGPU não detectado.</span><br>Use Chrome no Android ou atualize o iOS.`;
@@ -140,15 +138,19 @@
                     return;
                 }
 
-                // Correção: requestAdapterInfo() foi removido em versões recentes. Usamos adapter.info diretamente.
+                // CORREÇÃO CRÍTICA: Não chamamos mais requestAdapterInfo() pois ele foi removido do Chrome.
+                // Apenas verificamos se o adapter existe.
                 let infoText = "Compatível";
+                
+                // Tentativa segura de pegar o nome, se disponível como propriedade
                 if (adapter.info) {
-                    infoText = `${adapter.info.vendor} ${adapter.info.architecture || ''}`;
+                    infoText = `${adapter.info.vendor || ''} ${adapter.info.architecture || ''}`;
                 }
                 
                 els.gpuStatus.innerHTML = `<span class="text-green-400">✅ GPU Detectada:</span> ${infoText}`;
             } catch (e) {
-                els.gpuStatus.innerHTML = `<span class="text-yellow-400">⚠️ Erro ao acessar GPU: ${e.message}</span>`;
+                // Se der erro aqui, é algo muito grave, mas não será 'requestAdapterInfo not a function' pois removemos a chamada
+                els.gpuStatus.innerHTML = `<span class="text-yellow-400">⚠️ Erro GPU: ${e.message}</span>`;
             }
         }
         checkSystem();
@@ -164,17 +166,10 @@
             els.errorMsg.classList.add('hidden');
 
             try {
-                // Callback detalhado
                 const initProgressCallback = (report) => {
-                    console.log("Progress:", report); // Debug no console
-                    
-                    // Atualiza texto de fase (Ex: "Loading cache[1/20]")
-                    els.progressPhase.innerText = report.text.split('[')[0].substring(0, 20) + '...';
-                    
-                    // Atualiza Log
+                    console.log("Progress:", report); 
+                    els.progressPhase.innerText = report.text.split('[')[0].substring(0, 25) + '...';
                     els.progressLog.innerText = report.text;
-                    
-                    // Atualiza Barra
                     if (report.progress) {
                         const p = Math.round(report.progress * 100);
                         els.progressBar.style.width = `${p}%`;
@@ -184,10 +179,9 @@
 
                 engine = await CreateMLCEngine(modelId, { 
                     initProgressCallback,
-                    logLevel: "INFO" // Força logs no console do navegador
+                    logLevel: "INFO"
                 });
 
-                // Sucesso
                 els.progressPhase.innerText = "Concluído!";
                 els.progressBar.style.width = "100%";
                 setTimeout(showChat, 500);
@@ -195,7 +189,7 @@
             } catch (err) {
                 console.error(err);
                 els.errorMsg.classList.remove('hidden');
-                els.errorMsg.innerHTML = `<strong>Erro Fatal:</strong> ${err.message}<br><br>Dica: Tente usar Wi-Fi ou verificar se o site tem HTTPS.`;
+                els.errorMsg.innerHTML = `<strong>Erro Fatal:</strong> ${err.message}<br><br>Verifique sua conexão Wi-Fi.`;
                 els.btnLoad.classList.remove('hidden');
                 els.progressArea.classList.add('hidden');
                 els.modelSelect.disabled = false;
@@ -207,7 +201,7 @@
             setTimeout(() => els.setup.style.display = 'none', 500);
             els.chat.classList.remove('opacity-0', 'pointer-events-none');
             els.sendBtn.disabled = false;
-            appendMsg('assistant', 'Olá! Modelo carregado. Como posso ajudar?');
+            appendMsg('assistant', 'Olá! Modelo carregado (V2). Como posso ajudar?');
         }
 
         // 3. Lógica do Chat
@@ -223,7 +217,6 @@
             messages.push({ role: "user", content: text });
 
             let fullResponse = "";
-            // Criar container da resposta
             const responseDivId = appendMsg('assistant', '');
             const responseTextEl = document.getElementById(responseDivId).querySelector('p');
 
@@ -235,7 +228,7 @@
                 for await (const chunk of chunks) {
                     const delta = chunk.choices[0]?.delta?.content || "";
                     fullResponse += delta;
-                    responseTextEl.innerText = fullResponse; // Atualiza em tempo real
+                    responseTextEl.innerText = fullResponse; 
                     els.msgs.scrollTop = els.msgs.scrollHeight;
                 }
                 messages.push({ role: "assistant", content: fullResponse });
@@ -264,6 +257,5 @@
     </script>
 </body>
 </html>
-
 
 
